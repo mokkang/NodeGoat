@@ -44,6 +44,6 @@ jobs:
         run: |
           NODE_ENV=test npm start -- --silent &
           npm run test:ci
-      - test:
+          test:
           post:
             - curl -sSL https://download.sourceclear.com/ci.sh | sh
