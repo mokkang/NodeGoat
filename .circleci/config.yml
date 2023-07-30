@@ -97,6 +97,7 @@ jobs:
             name: "Policy Scan"
             command: java -jar /opt/veracode/api-wrapper.jar 
                 -vid=$VERACODE_API_ID 
+                -action uploadandscan
                 -vkey=$VERACODE_API_KEY 
                 -filepath upload.zip
                 -createprofile true
