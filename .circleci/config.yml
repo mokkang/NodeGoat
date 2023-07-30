@@ -72,7 +72,7 @@ jobs:
               -vkey $VERACODE_API_KEY 
               --file upload.zip
               --issue_details true
-              --fail_on_severity=""
+              --fail_on_severity="Very High,High"
 
   # job to upload to Veracode for scanning
   veracode_scan:
