@@ -2,8 +2,7 @@
 #
 # Check https://circleci.com/docs/2.0/language-javascript/ for more details
 #
-
-version: 2.1
+version: 2.0
 jobs:
   build:
     docker:
@@ -73,40 +72,40 @@ jobs:
               --file upload.zip
               --issue_details true
               --fail_on_severity="Very High,High"
-veracode_policy_scan:
+  policy_scan:
 
-    # use the official Veracode Docker image
-    docker:
-      - image: veracode/api-wrapper-java:latest
+      # use the official Veracode Docker image
+      docker:
+        - image: veracode/api-wrapper-java:latest
+        
+      working_directory: ~/repo
       
-    working_directory: ~/repo
-    
-    steps:
-      # get the files from the previous job
-      - attach_workspace:
-          at: .
-          
-      # 'package' for uploading to Veracode
-      - run: 
-          name: "Package for upload to Veracode"
-          #command: zip -r upload.zip nodegoat
-          command: zip -r upload.zip nodegoat -x *test/* *config/* *.circleci/* *.git* *node_modules/* .editorconfig .dockerignore
+      steps:
+        # get the files from the previous job
+        - attach_workspace:
+            at: .
+            
+        # 'package' for uploading to Veracode
+        - run: 
+            name: "Package for upload to Veracode"
+            #command: zip -r upload.zip nodegoat
+            command: zip -r upload.zip nodegoat -x *test/* *config/* *.circleci/* *.git* *node_modules/* .editorconfig .dockerignore
 
-      # upload for scanning
-      # env vars are used to pass login creds and set the scan name
-      - run:
-          name: "Policy Scan"
-          command: java -jar /opt/veracode/api-wrapper.jar 
-              -vid=$VERACODE_API_ID 
-              -vkey=$VERACODE_API_KEY 
-              -filepath upload.zip
-              -createprofile true
-              -appname NodeGoat-Circle_CI
-              -version v1.0.0
-              
+        # upload for scanning
+        # env vars are used to pass login creds and set the scan name
+        - run:
+            name: "Policy Scan"
+            command: java -jar /opt/veracode/api-wrapper.jar 
+                -vid=$VERACODE_API_ID 
+                -vkey=$VERACODE_API_KEY 
+                -filepath upload.zip
+                -createprofile true
+                -appname NodeGoat-Circle_CI
+                -version v1.0.0
+                
 
   # job to upload to Veracode for scanning
-  veracode_scan:
+  policy_scans:
 
     # use a java-based image to run the Veracode API wrapper
     docker:
@@ -125,14 +124,6 @@ veracode_policy_scan:
           name: "Package for upload to Veracode"
           #command: zip -r upload.zip nodegoat
           command: zip -r upload.zip nodegoat -x *test/* *config/* *.circleci/* *.git* *node_modules/* .editorconfig .dockerignore
-    
-      # grab the Veracode agent
-      - run:
-          name: "Get the Veracode agent"
-          command: |
-            wget https://repo1.maven.org/maven2/com/veracode/vosp/api/wrappers/vosp-api-wrappers-java/22.5.10.0/vosp-api-wrappers-java-22.5.10.0.jar -O VeracodeJavaAPI.jar
-      # upload for scanning
-      # env vars are used to pass login creds and set the scan name
       - run:
           name: "Upload to Veracode"
           command: java -jar VeracodeJavaAPI.jar 
@@ -145,6 +136,26 @@ veracode_policy_scan:
               -sandboxname CircleCI 
               -version CircleCI-$CIRCLE_BUILD_NUM 
               -filepath upload.zip
+
+      # grab the Veracode agent
+#      - run:
+#          name: "Get the Veracode agent"
+#          command: |
+#            wget https://repo1.maven.org/maven2/com/veracode/vosp/api/wrappers/vosp-api-wrappers-java/22.5.10.0/vosp-api-wrappers-java-22.5.10.0.jar -O VeracodeJavaAPI.jar
+      # upload for scanning
+      # env vars are used to pass login creds and set the scan name
+#      - run:
+#          name: "Upload to Veracode"
+          #command: java -jar VeracodeJavaAPI.jar 
+          #    -vid $VERACODE_API_ID 
+          #    -vkey $VERACODE_API_KEY 
+          #    -action uploadandscan 
+          #    -appname $VERACODE_APP_NAME 
+          #    -createprofile false
+          #    -createsandbox true
+          #    -sandboxname CircleCI 
+          #    -version CircleCI-$CIRCLE_BUILD_NUM 
+          #    -filepath upload.zip
 
   # job to upload to Veracode for scanning
   srcclr_scan:
@@ -187,7 +198,7 @@ workflows:
       - veracode_pipeline_scan:
           requires:
             - build
-      - veracode_scan:
+      - policy_scan:
           requires:
             - build
       - srcclr_scan:
