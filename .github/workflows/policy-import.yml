@@ -1,0 +1,85 @@
+# test of pipeline scan and Issue importer
+
+name: Pipeline scan and Issue importer
+
+#on: [push, pull_request, workflow_dispatch]
+on: gollum          # sort of a dummy to prevent this from running
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+        with:
+          path: nodegoat
+
+      - name: package (zip)
+        run: zip -r upload.zip nodegoat -x *node_modules/* *.git/*
+
+      - name: save archive
+        uses: actions/upload-artifact@v2
+        with:
+          name: scan-target
+          path: upload.zip
+
+  pipeline-scan:
+    needs: package
+    runs-on: ubuntu-latest
+    container: 
+      image: veracode/pipeline-scan:latest
+      options: --user root
+    steps:
+      - name: get archive
+        uses: actions/download-artifact@v2
+        with:
+          name: scan-target
+          path: /tmp
+
+      - name: debug1
+        run: |
+          pwd
+          ls -l
+          ls -l /tmp
+
+      - name: scan
+        run: |
+          java -jar /opt/veracode/pipeline-scan.jar \
+              -vid ${{ secrets.VERACODE_API_ID }}   \
+              -vkey ${{ secrets.VERACODE_API_KEY }} \
+              --file /tmp/upload.zip                \
+              --fail_on_severity="Very High,High"   \
+        continue-on-error: true
+
+      - name: debug2
+        run: |
+          pwd
+          ls -l
+          ls -l /tmp
+
+      - name: save filtered results file
+        uses: actions/upload-artifact@v2
+        with:
+          name: filtered-results
+          path: filtered_results.json
+
+  import-pipeline-issues:
+    needs: pipeline-scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: get scan results
+        uses: actions/download-artifact@v2
+        with:
+          name: filtered-results
+
+      - name: debug1
+        run: |
+          pwd
+          ls -l
+          ls -l /tmp
+
+      - name: import flaws as issues
+        uses: buzzcode/veracode-flaws-to-issues@main
+        with:
+          pipeline-results-json: 'filtered_results.json'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
