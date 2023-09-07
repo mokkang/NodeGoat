@@ -15,27 +15,26 @@ jobs:
       #   (would need a more elaborate method)
       - name: get policy flaws
         run: |
-          cd /tmp
           export VERACODE_API_KEY_ID=${{ secrets.VERACODE_API_ID }}
           export VERACODE_API_KEY_SECRET=${{ secrets.VERACODE_API_KEY }}
           curl -fsS https://tools.veracode.com/veracode-cli/install | sh
           ./veracode configure
-          ./veracode scan --source https://github.com/veracode/verademo --type repo --format json --output ./veracode_container_scan.json
-          ./veracode sbom --source https://github.com/veracode/verademo --type repo --format json --output ./sbom.json
-          ./veracode scan --source https://github.com/veracode/verademo-dotnet --type repo --format json --output ./veracode_container_scan_dotnet.json
-          ./veracode sbom --source https://github.com/veracode/verademo-dotnet --type repo --format json --output ./sbom_dotnet.json
+          ./veracode scan --source https://github.com/mokkang/NodeGoat --type repo --format json --output ./nodegoat_container.json
+          ./veracode sbom --source https://github.com/mokkang/NodeGoat --type repo --format json --output ./nodegoat_sbom.json
+        # ./veracode scan --source https://github.com/veracode/verademo-dotnet --type repo --format json --output ./veracode_container_scan_dotnet.json
+        # ./veracode sbom --source https://github.com/veracode/verademo-dotnet --type repo --format json --output ./sbom_dotnet.json
         #guid=$(http --auth-type veracode_hmac GET "https://api.veracode.com/appsec/v1/applications?name=NodeGoat" | jq -r '._embedded.applications[0].guid') 
         #echo GUID: ${guid}
         #  total_flaws=$(http --auth-type veracode_hmac GET "https://api.veracode.com/appsec/v2/applications/${guid}/findings?scan_type=STATIC&violates_policy=True" | jq -r '.page.total_elements')
         #  echo TOTAL_FLAWS: ${total_flaws}
         #  http --auth-type veracode_hmac GET "https://api.veracode.com/appsec/v2/applications/${guid}/findings?scan_type=STATIC&violates_policy=True&size=${total_flaws}" > policy_flaws.json
-          ls -l
+        #  ls -l
 
       - name: save results file
         uses: actions/upload-artifact@v2
         with:
           name: policy-flaws
-          path: /tmp/policy_flaws.json
+          path: .
 
   import-policy-flaws:
     needs: get-policy-flaws
@@ -45,13 +44,13 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: policy-flaws
-          path: /tmp
+          path: .
 
       - name: debug1
         run: |
           pwd
           ls -l
-          ls -l /tmp
+          ls -l .
 
       - name: import flaws as issues
         uses: buzzcode/veracode-flaws-to-issues@v1
