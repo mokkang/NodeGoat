@@ -35,7 +35,7 @@ pipeline{
                 }//end script
                 //################################################################################################
 ​
-                git branch: 'master', url: 'https://github.com/bnreplah/reactvulna'
+                git branch: 'master', url: 'https://github.com/mokkang/NodeGoat'
 ​
 ​
                 //################################################################################################
