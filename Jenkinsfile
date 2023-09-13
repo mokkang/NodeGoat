@@ -93,7 +93,7 @@ pipeline{
                         //########################################################################################
                         
                         sh "npm install ."
-                        sh "zip -r NodeGoat.zip  -x NodeGoat/node_modules/\*"
+                        sh "zip -r NodeGoat.zip  -x NodeGoat/node_modules/"
                         echo '===================== Checking directorty after build ====================='
                         sh 'ls'
                         sh 'pwd'
