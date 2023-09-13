@@ -1,4 +1,3 @@
-
 pipeline{
     //any is good for when you have clusters, running on the next available agent
     agent any
