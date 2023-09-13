@@ -5,8 +5,8 @@ pipeline{
 ​
     environment{
         VERACODE_APP_NAME = "reactvulna"
-        DBG = true
-        HOST_OS = checkOs()
+      //  DBG = true
+ //       HOST_OS = checkOs()
         APIVERSION = "23.4.11.2"
 ​
         // STAGES = ["Development", "Feature", "Staging", "Main"]
@@ -29,13 +29,13 @@ pipeline{
                 // Experimental:
                 echo '============================ Determine the operating system ============================'
                 echo 'The pipeline is being built in: '
-                echo checkOs()
-                script{
-                    env.HOST_OS = checkOs()
+      //          echo checkOs()
+      //          script{
+     //               env.HOST_OS = checkOs()
                 }//end script
                 //################################################################################################
 ​
-                git branch: 'master', url: 'https://github.com/mokkang/NodeGoat'
+ //               git branch: 'master', url: 'https://github.com/mokkang/NodeGoat'
 ​
 ​
                 //################################################################################################
@@ -72,16 +72,16 @@ pipeline{
                 //
                 echo '============================ Building the application ============================'
                 script{
-                    if(isUnix() == false){
+                    if(isUnix() == true){
 ​
                         //########################################################################################
                         // Moves into build location directory, location of build files
                         // Building the application using maven on a Windows Jenkins Host
-                        //########################################################################################
+                        //########################################################################################    zip -r nodegoat-veracode.zip -x NodeGoat/node_modules/\* NodeGoat/.\*/\*
                         powershell '''
                             ls
                             npm install
-                            Compress-Archive . reactvulna.zip
+                            Compress-Archive . NodeGoat.zip
                             ls
                         '''
                     }
@@ -93,7 +93,7 @@ pipeline{
                         //########################################################################################
                         
                         sh "npm install ."
-                        sh "zip -r reactvulna.zip ./"
+                        sh "zip -r NodeGoat.zip  -x NodeGoat/node_modules/\* NodeGoat/.\*/\*"
                         echo '===================== Checking directorty after build ====================='
                         sh 'ls'
                         sh 'pwd'
@@ -129,7 +129,7 @@ pipeline{
                         echo '===================== Checking directorty contents in build location ====================='
                         powershell 'ls'
                         
-                        withCredentials([string(credentialsId: 'SRCCLR_API_TOKEN', variable: 'SRCCLR_API_TOKEN')]) {
+                        withCredentials([string(credentialsId: 'SCA_Token', variable: 'SRCCLR_API_TOKEN')]) {
                             if(isUnix() == true){
                                 
                                 // ###################################################################################
